@@ -5,7 +5,6 @@ import rdkit
 from rdkit import Chem
 import fnmatch
 from sklearn import svm
-import pickle
 
 ## parse command-line arguments
 # process arguments
@@ -53,9 +52,8 @@ class new_drug_prediction:
             mapping_df = pd.read_csv('/scDrug/data/GDSC_drugID_smiles_map.csv', index_col = 0)
             self.cadrres_pred.columns = self.cadrres_pred.columns.droplevel(0)
             avai_mol = list(set(self.cadrres_pred.columns) & set(mapping_df.index))
-            self.cadrres_pred = self.cadrres_pred[avai_mol]
+            self.cadrres_pred = self.cadrres_pred[avai_mol].T.reset_index().groupby("Drug Name", as_index=False).mean().set_index("Drug Name").T
             self.train_smiles = mapping_df.loc[avai_mol , 'smiles'].values
-            
         else:
             print('invalid model name.')
     
@@ -89,10 +87,11 @@ class new_drug_prediction:
     
     def compute_output(self):
         if args.model == "PRISM":
+            self.pred_auc_df = 1-self.pred_auc_df
             self.pred_auc_output = self.pred_auc_df.reset_index().melt(id_vars=["index"], var_name = 'cluster', 
-                                                                    value_vars= 1-self.pred_auc_df.columns.tolist(), 
+                                                                    value_vars= self.pred_auc_df.columns.tolist(), 
                                                                     value_name = "AUC prediction")
-            self.pred_auc_output['classification'] = ['potnetial' if pred > 0.6 else ('inactive' if pred < 0.2 else 'unclear') 
+            self.pred_auc_output['classification'] = ['potnetial' if pred < 0.4 else ('inactive' if pred > 0.8 else 'unclear') 
                                                     for pred in 1-self.pred_auc_output['AUC prediction']]
             self.pred_auc_output['rank'] = list(map(int, self.pred_auc_output.groupby("cluster")["AUC prediction"].rank(ascending = True)))
             self.pred_auc_output = self.pred_auc_output.set_index(["cluster", 'index'])
