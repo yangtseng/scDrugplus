@@ -140,6 +140,32 @@ optional arguments:
 python3 drug_response_prediction.py --input scanpyobj.h5ad
 ```
 
+**Drug Response Prediction on new drugs** predicts the drug response of the input molecules which using parameter `--smiles /path/to/molecules_smiles.txt` with the drug response prediction result on known drugs `IC50_prediction.csv` (with parameter `--model GDSC`) or `AUC_prediction.csv` (with parameter `--model PRISM`) generated in **Drug Response Prediction**.
+
+- Run `python3 new_drug_prediction.py -h` to show the help messages as follow for **Drug Response Prediction on new drugs**.
+
+```
+usage: new_drug_prediction.py [-h] -i INPUT -smiles INPUT_SMILES [-m MODEL] [-o OUTPUT]
+
+Drug response prediction
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        path to input drug response prediction (csv file)
+  -smiles INPUT_SMILES, --smiles INPUT
+                        path to input the smiles string of known molecules (txt file)
+  -o OUTPUT, --output OUTPUT
+                        path to output directory, default='./'
+  -m MODEL, --model MODEL
+                        the sensitivity screening in the previous analysis is from GDSC ic50/PRISM auc, e.g. GDSC, PRISM, default='PRISM'
+```
+
+- Predict drug response on specified clusters (here for default all clusters) with **Drug Response Prediction**.
+
+```
+python3 new_drug_prediction.py --input AUC_prediction.csv --smiles molecules_smiles.txt
+```
 
 ### Treatment Selection
 
