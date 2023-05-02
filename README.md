@@ -164,7 +164,7 @@ optional arguments:
 - Predict drug response on specified clusters (here for default all clusters) with **Drug Response Prediction**.
 
 ```
-python3 new_drug_prediction.py --input AUC_prediction.csv --smiles molecules_smiles.txt
+python3 new_drug_prediction.py --input /path/to/AUC_prediction --smiles molecules_smiles.csv
 ```
 
 ### Treatment Selection
