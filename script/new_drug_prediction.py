@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import rdkit
 from rdkit import Chem
-import fnmatch
 from sklearn import svm
 
 ## parse command-line arguments
@@ -19,15 +18,23 @@ parser.add_argument('-m', '--model', default='PRISM', help='which model was used
 args = parser.parse_args()
 
 # check input
+if args.model == "PRISM":
+    input_file = os.path.join(args.input, "PRISM_prediction.csv")
+elif args.model == "GDSC":
+    input_file = os.path.join(args.input, "IC50_prediction.csv")
+
 if not os.path.exists(args.input):
     sys.exit('The input path does not exist.')
-if fnmatch.fnmatch(args.input, "*.csv") == False:
+if not os.path.exists(input_file):
+    sys.exit('The input file does not exist.')
+if input_file[-4:] != ".csv":
     sys.exit('The input file is not a csv file.')
+
 
 if not os.path.exists(args.input_smiles):
     sys.exit('The input path does not exist.')
-if fnmatch.fnmatch(args.input_smiles, "*.txt") == False:
-    sys.exit('The input file is not a txt file.')
+if args.input_smiles[-4:] != ".csv":
+    sys.exit('The input file is not a csv file.')
 
 
 # check output
@@ -44,11 +51,12 @@ class new_drug_prediction:
         self.compute_output()
         
     def load_prediction(self):
-        self.cadrres_pred = pd.read_csv(args.input, index_col=0, header=[0,1])
         if args.model == "PRISM":
+            self.cadrres_pred = pd.read_csv(os.path.join(args.input, "PRISM_prediction.csv"), index_col=0, header=[0,1])
             mapping_df = pd.read_csv('/scDrug/data/PRISM_drugID_smiles_map.csv', index_col = 0)
             self.train_smiles = mapping_df.loc[self.cadrres_pred.columns.get_level_values(0), 'smiles'].values
         elif args.model == "GDSC":
+            self.cadrres_pred = pd.read_csv(os.path.join(args.input, "IC50_prediction.csv"), index_col=0, header=[0,1])
             mapping_df = pd.read_csv('/scDrug/data/GDSC_drugID_smiles_map.csv', index_col = 0)
             self.cadrres_pred.columns = self.cadrres_pred.columns.droplevel(0)
             avai_mol = list(set(self.cadrres_pred.columns) & set(mapping_df.index))
@@ -64,8 +72,8 @@ class new_drug_prediction:
         return fps
     
     def load_input_mol(self):
-        with open(args.input_smiles) as f:
-            self.input_smiles = f.read().strip().split("\n")
+        self.input_smiles_df = pd.read_csv(args.input_smiles, index_col=1)
+        self.input_smiles = self.input_smiles_dict.index.tolist()
 
     def prepare_fingerprints(self):
         self.X = self.RDKfp_convert(self.train_smiles)
@@ -88,24 +96,31 @@ class new_drug_prediction:
     def compute_output(self):
         if args.model == "PRISM":
             self.pred_auc_df = 1-self.pred_auc_df
-            self.pred_auc_output = self.pred_auc_df.reset_index().melt(id_vars=["index"], var_name = 'cluster', 
-                                                                    value_vars= self.pred_auc_df.columns.tolist(), 
-                                                                    value_name = "AUC prediction")
-            self.pred_auc_output['classification'] = ['potnetial' if pred < 0.4 else ('inactive' if pred > 0.8 else 'unclear') 
-                                                    for pred in 1-self.pred_auc_output['AUC prediction']]
+            self.pred_auc_output = self.pred_auc_df.reset_index(names='smiles').melt(id_vars=["smiles"], var_name = 'cluster', 
+                                                        value_vars= self.pred_auc_df.columns.tolist(), 
+                                                        value_name = "AUC prediction")
+            #self.pred_auc_output['classification'] = ['potnetial' if pred < 0.4 else ('inactive' if pred > 0.8 else 'unclear') 
+            #                                        for pred in 1-self.pred_auc_output['AUC prediction']]
             self.pred_auc_output['rank'] = list(map(int, self.pred_auc_output.groupby("cluster")["AUC prediction"].rank(ascending = True)))
-            self.pred_auc_output = self.pred_auc_output.set_index(["cluster", 'index'])
+            self.pred_auc_output= self.pred_auc_output.sort_values(['cluster','rank'])
+            self.pred_auc_output['mol_name'] = self.input_smiles_df.loc[self.pred_auc_output['smiles']]['mol_name'].values
+
             print("saving drug level prediction")
-            self.pred_auc_output.to_csv(os.path.join(args.output, "drug_level_prediction.csv"), index = True)
+            self.pred_auc_output = self.pred_auc_output[['cluster', 'rank', 'mol_name', 'smiles', 'AUC prediction']]
+            self.pred_auc_output = self.pred_auc_output.set_index(["cluster"])
+            self.pred_auc_output.to_csv(os.path.join(args.output, "drug_rank_prediction.csv"), index = True)
 
         elif args.model == "GDSC":
-            self.pred_ic50_output = self.pred_auc_df.reset_index().melt(id_vars=["index"], var_name = 'cluster', 
+            self.pred_ic50_output = self.pred_auc_df.reset_index(names='smiles').melt(id_vars=["index"], var_name = 'cluster', 
                                                                     value_vars=self.pred_auc_df.columns.tolist(), 
                                                                     value_name = "IC50 prediction")
             self.pred_ic50_output['rank'] = list(map(int, self.pred_ic50_output.groupby("cluster")["IC50 prediction"].rank(ascending = True)))
-            self.pred_ic50_output = self.pred_ic50_output.set_index(["cluster", 'index'])
+            self.pred_ic50_output= self.pred_ic50_output.sort_values(['cluster','rank'])
+            self.pred_ic50_output['mol_name'] = self.input_smiles_df.loc[self.pred_ic50_output['smiles']]['mol_name'].values
+
             print("saving drug level prediction")
-            self.pred_ic50_output.to_csv(os.path.join(args.output, "drug_level_prediction.csv"), index = True)
+            self.pred_ic50_output = self.pred_ic50_output[['cluster', 'rank', 'mol_name', 'smiles', 'IC50 prediction']]
+            self.pred_ic50_output.to_csv(os.path.join(args.output, "drug_rank_prediction.csv"), index = True)
         else:
             print('invalid model name.')
 
