@@ -140,7 +140,13 @@ optional arguments:
 python3 drug_response_prediction.py --input scanpyobj.h5ad
 ```
 
-**Drug Response Prediction on new drugs** predicts the drug response of the input molecules which using parameter `--smiles /path/to/molecules_smiles.txt` with the drug response prediction result on known drugs `IC50_prediction.csv` (with parameter `--model GDSC`) or `AUC_prediction.csv` (with parameter `--model PRISM`) generated in **Drug Response Prediction**.
+**Drug Response Prediction on new drugs** predicts the drug response of the input molecules which using parameter `--smiles /path/to/molecules_smiles.csv` with the drug response prediction result on known drugs `IC50_prediction.csv` (with parameter `--model GDSC`) or `AUC_prediction.csv` (with parameter `--model PRISM`) generated in **Drug Response Prediction**.
+
+- The input format for unknown molecules is as follows:
+| mol_name  | smiles |
+| ------------- | ------------- |
+| mol_1  | O=NN(CCCl)C(=O)NCCCl  |
+| mol_2  | Nc1ccn(C2OC(CO)C(O)C2O)c(=O)n1  |
 
 - Run `python3 new_drug_prediction.py -h` to show the help messages as follow for **Drug Response Prediction on new drugs**.
 
@@ -154,14 +160,14 @@ optional arguments:
   -i INPUT, --input INPUT
                         path to input drug response prediction (csv file)
   -smiles INPUT_SMILES, --smiles INPUT
-                        path to input the smiles string of known molecules (txt file)
+                        path to input the smiles string of unknown molecules (csv file)
   -o OUTPUT, --output OUTPUT
                         path to output directory, default='./'
   -m MODEL, --model MODEL
                         the sensitivity screening in the previous analysis is from GDSC ic50/PRISM auc, e.g. GDSC, PRISM, default='PRISM'
 ```
 
-- Predict drug response on specified clusters (here for default all clusters) with **Drug Response Prediction**.
+- Predict drug response on new drugs and specified clusters (here for default all clusters) with **Drug Response Prediction on new drugs**.
 
 ```
 python3 new_drug_prediction.py --input /path/to/AUC_prediction --smiles molecules_smiles.csv
