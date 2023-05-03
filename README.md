@@ -143,6 +143,7 @@ python3 drug_response_prediction.py --input scanpyobj.h5ad
 **Drug Response Prediction on new drugs** predicts the drug response of the input molecules which using parameter `--smiles /path/to/molecules_smiles.csv` with the drug response prediction result on known drugs `IC50_prediction.csv` (with parameter `--model GDSC`) or `AUC_prediction.csv` (with parameter `--model PRISM`) generated in **Drug Response Prediction**.
 
 - The input format for unknown molecules is as follows:
+
 | mol_name  | smiles |
 | ------------- | ------------- |
 | mol_1  | O=NN(CCCl)C(=O)NCCCl  |
