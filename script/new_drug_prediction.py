@@ -10,7 +10,7 @@ from sklearn import svm
 parser = argparse.ArgumentParser(description='Drug response prediction on new drugs')
 
 parser.add_argument('-i', '--input', required=True, help='path to input drug response prediction results (csv file)')
-parser.add_argument('-smiles', '--input_smiles', required=True, help='path to input SMILES encoding of molecules (txt file)')
+parser.add_argument('-smiles', '--input_smiles', required=True, help='path to input SMILES encoding of molecules (csv file)')
 parser.add_argument('-o', '--output', default='./', help='path to output directory, default=\'./\'')
 parser.add_argument('-m', '--model', default='PRISM', help='which model was used in the previous drug response prediction process, default model: PRISM.')
 
@@ -73,7 +73,7 @@ class new_drug_prediction:
     
     def load_input_mol(self):
         self.input_smiles_df = pd.read_csv(args.input_smiles, index_col=1)
-        self.input_smiles = self.input_smiles_dict.index.tolist()
+        self.input_smiles = self.input_smiles_df.index.tolist()
 
     def prepare_fingerprints(self):
         self.X = self.RDKfp_convert(self.train_smiles)
@@ -111,7 +111,7 @@ class new_drug_prediction:
             self.pred_auc_output.to_csv(os.path.join(args.output, "drug_rank_prediction.csv"), index = True)
 
         elif args.model == "GDSC":
-            self.pred_ic50_output = self.pred_auc_df.reset_index(names='smiles').melt(id_vars=["index"], var_name = 'cluster', 
+            self.pred_ic50_output = self.pred_auc_df.reset_index(names='smiles').melt(id_vars=['smiles'], var_name = 'cluster', 
                                                                     value_vars=self.pred_auc_df.columns.tolist(), 
                                                                     value_name = "IC50 prediction")
             self.pred_ic50_output['rank'] = list(map(int, self.pred_ic50_output.groupby("cluster")["IC50 prediction"].rank(ascending = True)))
@@ -120,7 +120,7 @@ class new_drug_prediction:
 
             print("saving drug level prediction")
             self.pred_ic50_output = self.pred_ic50_output[['cluster', 'rank', 'mol_name', 'smiles', 'IC50 prediction']]
-            self.pred_ic50_output.to_csv(os.path.join(args.output, "drug_rank_prediction.csv"), index = True)
+            self.pred_ic50_output.to_csv(os.path.join(args.output, "drug_rank_prediction.csv"), index = False)
         else:
             print('invalid model name.')
 
