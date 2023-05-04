@@ -32,9 +32,9 @@ if input_file[-4:] != ".csv":
 
 
 if not os.path.exists(args.input_smiles):
-    sys.exit('The input path does not exist.')
+    sys.exit('The input path of smiles data does not exist.')
 if args.input_smiles[-4:] != ".csv":
-    sys.exit('The input file is not a csv file.')
+    sys.exit('The input smiles file is not a csv file.')
 
 
 # check output
