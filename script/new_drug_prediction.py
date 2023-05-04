@@ -23,8 +23,8 @@ if args.model == "PRISM":
 elif args.model == "GDSC":
     input_file = os.path.join(args.input, "IC50_prediction.csv")
 
-if not os.path.exists(args.input):
-    sys.exit('The input path does not exist.')
+#if not os.path.exists(args.input):
+#    sys.exit('The input path does not exist.')
 if not os.path.exists(input_file):
     sys.exit('The input file does not exist.')
 if input_file[-4:] != ".csv":
