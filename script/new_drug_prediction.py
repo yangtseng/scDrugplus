@@ -91,6 +91,7 @@ class new_drug_prediction:
             cluster_pred = model.predict(self.input_mol_fps)
             self.pred_auc_df[cluster] = cluster_pred
         print("saving drug response prediction of new drug.")
+        self.pred_auc_df = self.pred_auc_df.round(3)
         self.pred_auc_df.to_csv(os.path.join(args.output, "new_drug_prediction.csv"), index = True)
     
     def compute_output(self):
@@ -105,7 +106,7 @@ class new_drug_prediction:
             self.pred_auc_output= self.pred_auc_output.sort_values(['cluster','rank'])
             self.pred_auc_output['mol_name'] = self.input_smiles_df.loc[self.pred_auc_output['smiles']]['mol_name'].values
 
-            print("saving drug level prediction")
+            print("saving rank of drug response prediction")
             self.pred_auc_output = self.pred_auc_output[['cluster', 'rank', 'mol_name', 'smiles', 'AUC prediction']]
             self.pred_auc_output = self.pred_auc_output.set_index(["cluster"])
             self.pred_auc_output.to_csv(os.path.join(args.output, "drug_rank_prediction.csv"), index = True)
@@ -118,7 +119,7 @@ class new_drug_prediction:
             self.pred_ic50_output= self.pred_ic50_output.sort_values(['cluster','rank'])
             self.pred_ic50_output['mol_name'] = self.input_smiles_df.loc[self.pred_ic50_output['smiles']]['mol_name'].values
 
-            print("saving drug level prediction")
+            print("saving rank of drug response prediction")
             self.pred_ic50_output = self.pred_ic50_output[['cluster', 'rank', 'mol_name', 'smiles', 'IC50 prediction']]
             self.pred_ic50_output.to_csv(os.path.join(args.output, "drug_rank_prediction.csv"), index = False)
         else:
