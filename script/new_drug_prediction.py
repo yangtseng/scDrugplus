@@ -96,13 +96,13 @@ class new_drug_prediction:
     
     def compute_output(self):
         if args.model == "PRISM":
-            self.pred_auc_df = 1-self.pred_auc_df
+            #self.pred_auc_df = 1-self.pred_auc_df
             self.pred_auc_output = self.pred_auc_df.reset_index(names='smiles').melt(id_vars=["smiles"], var_name = 'cluster', 
                                                         value_vars= self.pred_auc_df.columns.tolist(), 
                                                         value_name = "AUC prediction")
             #self.pred_auc_output['classification'] = ['potnetial' if pred < 0.4 else ('inactive' if pred > 0.8 else 'unclear') 
             #                                        for pred in 1-self.pred_auc_output['AUC prediction']]
-            self.pred_auc_output['rank'] = list(map(int, self.pred_auc_output.groupby("cluster")["AUC prediction"].rank(ascending = True)))
+            self.pred_auc_output['rank'] = list(map(int, self.pred_auc_output.groupby("cluster")["Sensitivity prediction"].rank(ascending = False)))
             self.pred_auc_output= self.pred_auc_output.sort_values(['cluster','rank'])
             self.pred_auc_output['mol_name'] = self.input_smiles_df.loc[self.pred_auc_output['smiles']]['mol_name'].values
 
