@@ -99,7 +99,7 @@ class new_drug_prediction:
             #self.pred_auc_df = 1-self.pred_auc_df
             self.pred_auc_output = self.pred_auc_df.reset_index(names='smiles').melt(id_vars=["smiles"], var_name = 'cluster', 
                                                         value_vars= self.pred_auc_df.columns.tolist(), 
-                                                        value_name = "AUC prediction")
+                                                        value_name = "Sensitivity prediction")
             #self.pred_auc_output['classification'] = ['potnetial' if pred < 0.4 else ('inactive' if pred > 0.8 else 'unclear') 
             #                                        for pred in 1-self.pred_auc_output['AUC prediction']]
             self.pred_auc_output['rank'] = list(map(int, self.pred_auc_output.groupby("cluster")["Sensitivity prediction"].rank(ascending = False)))
@@ -107,7 +107,7 @@ class new_drug_prediction:
             self.pred_auc_output['mol_name'] = self.input_smiles_df.loc[self.pred_auc_output['smiles']]['mol_name'].values
 
             print("saving rank of drug response prediction")
-            self.pred_auc_output = self.pred_auc_output[['cluster', 'rank', 'mol_name', 'smiles', 'AUC prediction']]
+            self.pred_auc_output = self.pred_auc_output[['cluster', 'rank', 'mol_name', 'smiles', 'Sensitivity prediction']]
             self.pred_auc_output = self.pred_auc_output.set_index(["cluster"])
             self.pred_auc_output.to_csv(os.path.join(args.output, "drug_rank_prediction.csv"), index = True)
 
